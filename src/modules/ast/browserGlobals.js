@@ -1,4 +1,4 @@
-import { queryElements, queryElementsAll } from "@cocreate/utils";
+import { queryElements, queryElementsAll } from "@cocreate/utils/queryElements";
 
 function getElement(context) {
     return context?.element || context?.$this || null;
