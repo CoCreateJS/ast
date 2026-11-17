@@ -12,7 +12,9 @@
     "client",
     "server"
   ],
-  "publishConfig": { "access": "public" },
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "main": "./src/server.js",
   "browser": "./src/client.js",
@@ -40,10 +42,15 @@
     "url": "git+https://github.com/CoCreateJS/ast.git"
   },
   "author": "CoCreate LLC",
-  "bugs": { "url": "https://github.com/CoCreateJS/ast/issues" },
+  "bugs": {
+    "url": "https://github.com/CoCreateJS/ast/issues"
+  },
   "homepage": "https://CoCreateJS.com/docs/ast",
   "scripts": {
     "test": "node --test"
   },
-  "dependencies": { "@cocreate/utils": "^2.0.3" }
+  "dependencies": {
+    "@cocreate/utils": "^2.0.3",
+    "@cocreate/kms": "^1.1.0"
+  }
 }

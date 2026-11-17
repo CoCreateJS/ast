@@ -1,6 +1,6 @@
 import { getBuiltinModule } from "node:process";
 import { Buffer } from "node:buffer";
-import { security } from "@cocreate/utils";
+import { kms } from "@cocreate/kms/server";
 
 // Non-deprecated top-level Node modules. Keep inactive entries beside the active list
 // so runtime availability is visible without loading every module at startup.
@@ -52,7 +52,7 @@ export const serverModules = [
 export const serverGlobalsScope = {
     $global: globalThis, // Node global object; also available as shared $globalThis.
     $Buffer: Buffer, // Native binary buffer constructor.
-    $security: security, // Existing CoCreate security helpers.
+    $kms: kms, // Cryptographic and key-management helpers.
     $setImmediate: globalThis.setImmediate, // Schedule a callback for the check phase.
     $clearImmediate: globalThis.clearImmediate // Cancel a scheduled immediate callback.
 };

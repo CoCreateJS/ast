@@ -29,7 +29,7 @@ test("server roots preserve native APIs and leave shared scope free of Node modu
     assert.equal(sharedGlobalsScope.$crypto, globalThis.crypto);
     assert.equal("$fs" in sharedGlobalsScope, false);
     assert.equal("$Buffer" in sharedGlobalsScope, false);
-    assert.equal(typeof astSync({ executeAST: "$security.generateKeyPair" }), "function");
+    assert.equal(typeof astSync({ executeAST: "$kms.generateKeyPair" }), "function");
 });
 
 for (const evaluate of [astSync, astAsync]) {

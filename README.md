@@ -255,7 +255,7 @@ helpers remain available.
 
 Import `astSync` or `astAsync` from `@cocreate/ast` in Node to register the
 server scope. It adds `$crypto`, `$fs`, `$buffer`, `$Buffer`, `$util`, `$process`,
-and the other enabled public top-level Node modules, plus the existing `$security`.
+and the other enabled public top-level Node modules, plus the KMS `$kms` namespace.
 Native modules load on access using Node's
 [`process.getBuiltinModule`](https://nodejs.org/api/process.html#processgetbuiltinmoduleid).
 The explicit list is in `src/modules/ast/serverGlobals.js`; unsupported entries

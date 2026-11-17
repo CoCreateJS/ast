@@ -26,5 +26,5 @@ The package root selects the Node entry in Node.js and the browser entry in
 browser-aware bundlers. `@cocreate/ast/server` and `@cocreate/ast/client` select
 those entries explicitly. Both entries expose the same evaluator API and
 shared syntax. Browser globals are registered by the client entry; Node
-built-ins and CoCreate's server security helpers are registered by the server
+built-ins and CoCreate KMS server helpers are registered by the server
 entry.
