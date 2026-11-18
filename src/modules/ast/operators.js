@@ -16,8 +16,9 @@
  *
  ********************************************************************************/
 
-import { getValueFromObject, ObjectId } from "@cocreate/utils";
-import { queryElements } from "@cocreate/utils/queryElements";
+import { getValueFromObject } from "../helpers/getValueFromObject.js";
+import { ObjectId } from "../helpers/ObjectId.js";
+import { queryElements } from "../helpers/queryElements.js";
 import { browserGlobalOperators, browserGlobalsScope } from "./browserGlobals.js";
 import { sharedGlobalOperators, sharedGlobalsScope } from "./sharedGlobals.js";
 

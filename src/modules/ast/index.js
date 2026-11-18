@@ -1,5 +1,7 @@
-import { dotNotationToObject, getValueFromObject, queryData } from "@cocreate/utils";
-import { queryElements } from "@cocreate/utils/queryElements";
+import { dotNotationToObject } from "../helpers/dotNotationToObject.js";
+import { getValueFromObject } from "../helpers/getValueFromObject.js";
+import { queryData } from "../helpers/dataQuery.js";
+import { queryElements } from "../helpers/queryElements.js";
 import { browserGlobalsScope } from "./browserGlobals.js";
 import { sharedGlobalsScope } from "./sharedGlobals.js";
 import {

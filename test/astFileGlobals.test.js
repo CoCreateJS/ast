@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { astSync, astAsync } from '../src/modules/ast/index.js';
-import { encodeContent } from '@cocreate/utils/file';
+import { encodeContent } from '../src/modules/helpers/file/index.js';
 import { sharedGlobalsScope } from '../src/modules/ast/sharedGlobals.js';
 
 test('file AST globals directly delegate to shared conversion helpers', async () => {

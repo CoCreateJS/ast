@@ -9,10 +9,9 @@ conditions. Both expose the shared evaluator and operator implementation. The
 client entry registers browser roots. The server entry registers shared roots
 plus documented Node.js built-ins and CoCreate server helpers.
 
-The evaluator imports shared value, query, file, and object helpers from
-`@cocreate/utils`. This keeps the AST package's operation semantics aligned
-with the existing CoCreate utility contracts while exposing the evaluator as
-its own public package.
+The evaluator owns its shared value, query, file, and object helpers. This
+keeps the package independent while exposing the evaluator as its own public
+package.
 
 AST roots are capabilities available to an evaluation. The server entry can
 expose Node process capabilities to workflows, so the evaluator is not a

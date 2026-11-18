@@ -1,6 +1,6 @@
-import { ObjectId } from "@cocreate/utils";
-import { uuid } from "@cocreate/utils";
-import { encodeContent, decodeContent, getContentType, getExtension, getExtensions, isTextContentType } from "@cocreate/utils/file";
+import { ObjectId } from "../helpers/ObjectId.js";
+import { uid, uuid } from "../helpers/uuid.js";
+import { encodeContent, decodeContent, getContentType, getExtension, getExtensions, isTextContentType } from "../helpers/file/index.js";
 
 function concatValues(values) {
     return values
@@ -90,7 +90,8 @@ const sharedGlobals = {
             ? concatValues(value)
             : String(value ?? ""),
     get $object_id() { return ObjectId().toString(); },
-    $uuid: (prefix) => uuid(prefix) || "",
+    $uuid: () => uuid(),
+    $uid: (length) => uid(length),
     $randomColor: () => `hsla(${Math.floor(Math.random() * 360)}, 75%, 58%, 1)`,
     $parse: (value = "") => {
         try {
