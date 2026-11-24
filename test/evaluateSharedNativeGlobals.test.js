@@ -1,14 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { astSync, astAsync } from "../src/modules/ast/index.js";
+import { evaluateSync, evaluateAsync } from "../src/modules/evaluate/index.js";
 
 // Import the shared evaluator directly so server registration cannot mask gaps.
 test("shared native roots work without importing the server entry", async () => {
-    assert.equal(astSync({ executeAST: "$Promise" }), Promise);
-    assert.equal(astSync({ executeAST: "$crypto" }), globalThis.crypto);
-    assert.equal(astSync({ executeAST: "$TextEncoder" }), TextEncoder);
-    assert.equal(astSync({ executeAST: "$globalThis" }), globalThis);
-    const result = await astAsync({ executeAST: {
+    assert.equal(evaluateSync({ executeAST: "$Promise" }), Promise);
+    assert.equal(evaluateSync({ executeAST: "$crypto" }), globalThis.crypto);
+    assert.equal(evaluateSync({ executeAST: "$TextEncoder" }), TextEncoder);
+    assert.equal(evaluateSync({ executeAST: "$globalThis" }), globalThis);
+    const result = await evaluateAsync({ executeAST: {
         encoder: { "$TextEncoder": [] },
         bytes: { "$encoder.encode": ["abc"] },
         $return: { "$crypto.subtle.digest": ["SHA-256", "$bytes"] }
@@ -21,7 +21,7 @@ test("native global functions keep their global receiver", async t => {
         assert.equal(this, globalThis);
         return new Response(url);
     });
-    assert.equal(await astAsync({ executeAST: {
+    assert.equal(await evaluateAsync({ executeAST: {
         response: { "$fetch": ["native response"] },
         $return: { "$response.text": [] }
     } }), "native response");

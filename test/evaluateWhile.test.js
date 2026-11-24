@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { astSync, astAsync } from "../src/modules/ast/index.js";
+import { evaluateSync, evaluateAsync } from "../src/modules/evaluate/index.js";
 
 const when = (expression, branch) => ({
     $if: { [expression]: { $eq: { $true: branch } } }
 });
 
-for (const evaluate of [astSync, astAsync]) {
+for (const evaluate of [evaluateSync, evaluateAsync]) {
     test(`${evaluate.name}: do-while polls until the supplied API returns true`, async () => {
         let calls = 0;
         const result = await evaluate({
@@ -126,7 +126,7 @@ for (const evaluate of [astSync, astAsync]) {
 test("async do-while awaits each API response before checking and calling again", async () => {
     const events = [];
     let calls = 0;
-    await astAsync({
+    await evaluateAsync({
         sandbox: {
             async TestAPI() {
                 const call = ++calls;
@@ -150,13 +150,13 @@ test("async while awaits condition calls and a scoped Promise condition", async 
         const body = { "$state.calls": "$($state.calls + 1)" };
         const condition = { $check: [] };
         const executeAST = doFirst ? { $do: body, $while: condition } : { $while: condition, $do: body };
-        await astAsync({
+        await evaluateAsync({
             sandbox: { state, check: async () => state.calls < 3 }, executeAST
         });
         assert.equal(state.calls, 3);
     }
     let calls = 0;
-    await astAsync({
+    await evaluateAsync({
         sandbox: { ready: Promise.resolve(false), work: () => ++calls },
         executeAST: { $do: { $work: [] }, $while: "$ready" }
     });

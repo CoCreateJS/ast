@@ -25,21 +25,21 @@ import { sharedGlobalOperators, sharedGlobalsScope } from "./sharedGlobals.js";
 const isBrowser = typeof window !== "undefined";
 
 // Late-binding references dynamically set at boot time to decouple circular import loops
-let astSyncRef = null;
-let astAsyncRef = null;
+let evaluateSyncRef = null;
+let evaluateAsyncRef = null;
 
-export function setASTEvaluators(syncFn, asyncFn) {
-    astSyncRef = syncFn;
-    astAsyncRef = asyncFn;
+export function setEvaluators(syncFn, asyncFn) {
+    evaluateSyncRef = syncFn;
+    evaluateAsyncRef = asyncFn;
 }
 
-function parseASTExpression(expression) {
+function parseExpression(expression) {
     if (typeof expression !== "string") return expression;
 
     try {
         return JSON.parse(expression);
     } catch (error) {
-        console.warn("[Operator Engine] Invalid JSON passed to $ast.", error);
+        console.warn("[Operator Engine] Invalid JSON passed to $evaluate.", error);
         return "";
     }
 }
@@ -326,24 +326,24 @@ export const customOperators = new Map([
         "$": function (expression) {
             return safeParse(expression, this.registry);
         },
-        $ast: function (expression) {
-            if (!astSyncRef) {
-                console.warn("[Operator Engine] AST Evaluator reference not registered.");
+        $evaluate: function (expression) {
+            if (!evaluateSyncRef) {
+                console.warn("[Operator Engine] Evaluate reference not registered.");
                 return expression;
             }
-            return astSyncRef({
-                executeAST: parseASTExpression(expression),
+            return evaluateSyncRef({
+                executeAST: parseExpression(expression),
                 node: this.element,
                 registry: this.registry
             });
         },
-        $astAsync: async function (expression) {
-            if (!astAsyncRef) {
-                console.warn("[Operator Engine] AST Async Evaluator reference not registered.");
+        $evaluateAsync: async function (expression) {
+            if (!evaluateAsyncRef) {
+                console.warn("[Operator Engine] Evaluate async reference not registered.");
                 return expression;
             }
-            return await astAsyncRef({
-                executeAST: parseASTExpression(expression),
+            return await evaluateAsyncRef({
+                executeAST: parseExpression(expression),
                 node: this.element,
                 registry: this.registry
             });
@@ -746,8 +746,8 @@ export function processOperators(element, value, exclude = [], parent, params = 
             const delimiter = "`".repeat(layers - 1);
             resolvedValue = delimiter + args + delimiter;
         } else if (stringLiteral) {
-            const result = astSyncRef
-                ? astSyncRef({
+            const result = evaluateSyncRef
+                ? evaluateSyncRef({
                     executeAST: args,
                     node: element,
                     registry: objectRegistry,

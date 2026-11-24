@@ -1,4 +1,4 @@
-# Contributing to CoCreate AST
+# Contributing to CoCreate Evaluate
 
 Please open an issue to discuss proposed changes, then submit a pull request
 with focused code and documentation updates. Document externally visible

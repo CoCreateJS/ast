@@ -17,7 +17,7 @@ globalThis.window = {
 };
 globalThis.localStorage = { getItem: () => null };
 
-const { astAsync, astSync } = await import("../src/modules/ast/index.js");
+const { evaluateAsync, evaluateSync } = await import("../src/modules/evaluate/index.js");
 
 const regexEnabledLabel = {
 	$if: {
@@ -76,9 +76,9 @@ test("AST reads the current element value in sync and async contexts", async () 
         const element = createElement(value);
         const sandbox = { $this: element };
 
-        assert.equal(astSync({ executeAST: "$value", node: element, sandbox }), value);
+        assert.equal(evaluateSync({ executeAST: "$value", node: element, sandbox }), value);
         assert.equal(
-            await astAsync({ executeAST: "$value", node: element, sandbox }),
+            await evaluateAsync({ executeAST: "$value", node: element, sandbox }),
             value
         );
     }
@@ -94,9 +94,9 @@ test("AST direct equality preserves string branch keys", async () => {
         const element = createElement(value);
         const sandbox = { $this: element };
 
-        assert.equal(astSync({ executeAST: directEnabledLabel, node: element, sandbox }), expected);
+        assert.equal(evaluateSync({ executeAST: directEnabledLabel, node: element, sandbox }), expected);
         assert.equal(
-            await astAsync({ executeAST: directEnabledLabel, node: element, sandbox }),
+            await evaluateAsync({ executeAST: directEnabledLabel, node: element, sandbox }),
             expected
         );
     }
@@ -112,9 +112,9 @@ test("AST boolean branch keys require explicit boolean operators", async () => {
 		const element = createElement(value);
 		const sandbox = { $this: element };
 
-		assert.equal(astSync({ executeAST: typedEnabledLabel, node: element, sandbox }), expected);
+		assert.equal(evaluateSync({ executeAST: typedEnabledLabel, node: element, sandbox }), expected);
 		assert.equal(
-			await astAsync({ executeAST: typedEnabledLabel, node: element, sandbox }),
+			await evaluateAsync({ executeAST: typedEnabledLabel, node: element, sandbox }),
 			expected
 		);
 	}
@@ -130,9 +130,9 @@ test("AST JSON parsing maps boolean strings and booleans without regex", async (
 		const element = createElement(value);
 		const sandbox = { $this: element };
 
-		assert.equal(astSync({ executeAST: parsedEnabledLabel, node: element, sandbox }), expected);
+		assert.equal(evaluateSync({ executeAST: parsedEnabledLabel, node: element, sandbox }), expected);
 		assert.equal(
-			await astAsync({ executeAST: parsedEnabledLabel, node: element, sandbox }),
+			await evaluateAsync({ executeAST: parsedEnabledLabel, node: element, sandbox }),
 			expected
 		);
 	}
@@ -143,9 +143,9 @@ test("AST regex maps string booleans", async () => {
 		const element = createElement(value);
 		const sandbox = { $this: element };
 
-		assert.equal(astSync({ executeAST: regexEnabledLabel, node: element, sandbox }), expected);
+		assert.equal(evaluateSync({ executeAST: regexEnabledLabel, node: element, sandbox }), expected);
 		assert.equal(
-			await astAsync({ executeAST: regexEnabledLabel, node: element, sandbox }),
+			await evaluateAsync({ executeAST: regexEnabledLabel, node: element, sandbox }),
 			expected
 		);
 	}
@@ -157,7 +157,7 @@ test("OperatorJS does not execute JavaScript function blocks in safeParse", () =
 	for (const value of ["true", "false"]) {
 		const element = createElement(value);
 		const sandbox = { $this: element };
-		assert.equal(astSync({ executeAST: expression, node: element, sandbox }), "");
+		assert.equal(evaluateSync({ executeAST: expression, node: element, sandbox }), "");
 	}
 });
 
@@ -167,7 +167,7 @@ test("OperatorJS converts a backtick value to a string inside a safeParse ternar
 	for (const [value, expected] of [["true", "Enabled"], ["false", "Disabled"]]) {
 		const element = createElement(value);
 		const sandbox = { $this: element };
-		assert.equal(astSync({ executeAST: expression, node: element, sandbox }), expected);
+		assert.equal(evaluateSync({ executeAST: expression, node: element, sandbox }), expected);
 	}
 });
 
@@ -187,13 +187,13 @@ test("AST conditional mapping works with an injected sandbox value", async () =>
     for (const [testing, expected] of [[true, "Enabled"], [false, "Disabled"]]) {
         const sandbox = { $testing: testing };
 
-        assert.equal(astSync({ executeAST: testingLabel, sandbox }), expected);
-        assert.equal(await astAsync({ executeAST: testingLabel, sandbox }), expected);
+        assert.equal(evaluateSync({ executeAST: testingLabel, sandbox }), expected);
+        assert.equal(await evaluateAsync({ executeAST: testingLabel, sandbox }), expected);
     }
 });
 
 test("AST browser globals read window and the current CoCreate namespace", async () => {
-    for (const evaluate of [astSync, astAsync]) {
+    for (const evaluate of [evaluateSync, evaluateAsync]) {
         assert.equal(await evaluate({ executeAST: "$window" }), window);
         delete window.CoCreate;
         assert.equal(await evaluate({ executeAST: "$CoCreate" }), undefined);
@@ -212,7 +212,7 @@ test("AST browser globals read window and the current CoCreate namespace", async
 });
 
 test("AST browser global paths support assignments and preserve method receivers", async () => {
-    for (const evaluate of [astSync, astAsync]) {
+    for (const evaluate of [evaluateSync, evaluateAsync]) {
         window.CoCreate = {
             label: "CoCreate",
             describe(value) { return `${this.label}: ${value}`; }
@@ -231,7 +231,7 @@ test("OperatorJS accepts browser globals inside expressions", async () => {
     window.window = window;
     window.CoCreate = { label: "CoCreate" };
     try {
-        for (const evaluate of [astSync, astAsync]) {
+        for (const evaluate of [evaluateSync, evaluateAsync]) {
             assert.equal(await evaluate({ node: createElement(""), executeAST: "$(window.innerWidth)" }), 1024);
             assert.equal(await evaluate({ node: createElement(""), executeAST: "$(CoCreate.label)" }), "CoCreate");
             assert.equal(await evaluate({ node: createElement(""), executeAST: "$($window.innerWidth)" }), 1024);
@@ -247,7 +247,7 @@ test("OperatorJS accepts browser globals inside expressions", async () => {
 test("browser globals accept explicit plugin sandbox bindings without changing global defaults", async () => {
     const injectedWindow = { label: "Scoped window" };
     const injectedCoCreate = { label: "Scoped CoCreate" };
-    for (const evaluate of [astSync, astAsync]) {
+    for (const evaluate of [evaluateSync, evaluateAsync]) {
         const sandbox = { $window: injectedWindow, $CoCreate: injectedCoCreate };
         assert.equal(await evaluate({ sandbox, executeAST: "$window" }), injectedWindow);
         assert.equal(await evaluate({ sandbox, executeAST: "$CoCreate" }), injectedCoCreate);

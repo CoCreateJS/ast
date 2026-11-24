@@ -5,9 +5,9 @@ import { getBuiltinModule } from "node:process";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { astSync, astAsync, processOperators } from "../src/server.js";
-import { serverModules } from "../src/modules/ast/serverGlobals.js";
-import { sharedGlobalsScope } from "../src/modules/ast/sharedGlobals.js";
+import { evaluateSync, evaluateAsync, processOperators } from "../src/server.js";
+import { serverModules } from "../src/modules/evaluate/serverGlobals.js";
+import { sharedGlobalsScope } from "../src/modules/evaluate/sharedGlobals.js";
 
 const hash = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad";
 
@@ -22,17 +22,17 @@ test("server registry accounts for public top-level modules and deliberate exclu
 
 test("server roots preserve native APIs and leave shared scope free of Node modules", () => {
     for (const name of ["crypto", "fs", "buffer", "util", "process", "path", "module"]) {
-        assert.equal(astSync({ executeAST: `$${name}` }), getBuiltinModule(`node:${name}`));
+        assert.equal(evaluateSync({ executeAST: `$${name}` }), getBuiltinModule(`node:${name}`));
     }
-    assert.equal(astSync({ executeAST: "$Buffer" }), Buffer);
-    assert.equal(astSync({ executeAST: "$crypto.webcrypto" }), globalThis.crypto);
+    assert.equal(evaluateSync({ executeAST: "$Buffer" }), Buffer);
+    assert.equal(evaluateSync({ executeAST: "$crypto.webcrypto" }), globalThis.crypto);
     assert.equal(sharedGlobalsScope.$crypto, globalThis.crypto);
     assert.equal("$fs" in sharedGlobalsScope, false);
     assert.equal("$Buffer" in sharedGlobalsScope, false);
-    assert.equal(typeof astSync({ executeAST: "$kms.generateKeyPair" }), "function");
+    assert.equal(typeof evaluateSync({ executeAST: "$kms.generateKeyPair" }), "function");
 });
 
-for (const evaluate of [astSync, astAsync]) {
+for (const evaluate of [evaluateSync, evaluateAsync]) {
     test(`${evaluate.name}: native objects can be created, chained, and exported`, async () => {
         const result = await evaluate({ executeAST: {
             hash: { "$crypto.createHash": ["sha256"] },
@@ -68,11 +68,11 @@ for (const evaluate of [astSync, astAsync]) {
 
 test("native server modules also resolve through the string operator engine", () => {
     assert.equal(processOperators(null, "$($process.version)"), process.version);
-    assert.equal(astSync({ executeAST: "$($process.version)" }), process.version);
+    assert.equal(evaluateSync({ executeAST: "$($process.version)" }), process.version);
 });
 
 test("native util.promisify and crypto compose into async key generation", async () => {
-    const result = await astAsync({ executeAST: {
+    const result = await evaluateAsync({ executeAST: {
         generate: { "$util.promisify": "$crypto.generateKeyPair" },
         pair: { "$generate": ["ed25519", {}] },
         publicKey: { "$pair.publicKey.export": { type: "spki", format: "pem" } },
@@ -82,10 +82,10 @@ test("native util.promisify and crypto compose into async key generation", async
 });
 
 test("native fs promise methods compose without dedicated AST helpers", async () => {
-    const directory = await mkdtemp(join(tmpdir(), "cocreate-ast-native-"));
+    const directory = await mkdtemp(join(tmpdir(), "cocreate-evaluate-native-"));
     const pathname = join(directory, "value.txt");
     try {
-        assert.equal(await astAsync({ sandbox: { pathname }, executeAST: {
+        assert.equal(await evaluateAsync({ sandbox: { pathname }, executeAST: {
             write: { "$fs.promises.writeFile": ["$pathname", "native bytes", "utf8"] },
             $return: { "$fs.promises.readFile": ["$pathname", "utf8"] }
         } }), "native bytes");
@@ -95,7 +95,7 @@ test("native fs promise methods compose without dedicated AST helpers", async ()
 });
 
 test("shared Web Crypto and byte encoders remain directly composable", async () => {
-    const digest = await astAsync({ executeAST: {
+    const digest = await evaluateAsync({ executeAST: {
         encoder: { "$TextEncoder": [] },
         bytes: { "$encoder.encode": ["abc"] },
         digest: { "$crypto.webcrypto.subtle.digest": ["SHA-256", "$bytes"] },
@@ -103,5 +103,5 @@ test("shared Web Crypto and byte encoders remain directly composable", async () 
         $return: { "$buffer.toString": ["hex"] }
     } });
     assert.equal(digest, hash);
-    assert.equal(await astAsync({ executeAST: { "$Promise.resolve": [42] } }), 42);
+    assert.equal(await evaluateAsync({ executeAST: { "$Promise.resolve": [42] } }), 42);
 });

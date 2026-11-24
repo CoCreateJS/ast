@@ -1,5 +1,5 @@
 {
-  "name": "@cocreate/ast",
+  "name": "@cocreate/evaluate",
   "version": "1.0.0",
   "description": "CoCreate's declarative abstract syntax tree evaluator for client and server applications.",
   "keywords": [
@@ -24,9 +24,7 @@
       "deno": "./src/server.js",
       "browser": "./src/client.js",
       "default": "./src/server.js"
-    },
-    "./server": "./src/server.js",
-    "./client": "./src/client.js"
+    }
   },
   "files": [
     "src/",
@@ -39,13 +37,13 @@
   "license": "AGPL-3.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/CoCreateJS/ast.git"
+    "url": "git+https://github.com/CoCreateJS/evaluate.git"
   },
   "author": "CoCreate LLC",
   "bugs": {
-    "url": "https://github.com/CoCreateJS/ast/issues"
+    "url": "https://github.com/CoCreateJS/evaluate/issues"
   },
-  "homepage": "https://CoCreateJS.com/docs/ast",
+  "homepage": "https://CoCreateJS.com/docs/evaluate",
   "scripts": {
     "test": "node --test"
   },

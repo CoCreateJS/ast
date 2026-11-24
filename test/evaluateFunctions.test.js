@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { astSync, astAsync } from "../src/modules/ast/index.js";
+import { evaluateSync, evaluateAsync } from "../src/modules/evaluate/index.js";
 
-for (const [name, evaluate] of [["astSync", astSync], ["astAsync", astAsync]]) {
+for (const [name, evaluate] of [["evaluateSync", evaluateSync], ["evaluateAsync", evaluateAsync]]) {
     test(`${name}: $function returns synchronously regardless of its creator`, async () => {
         const callback = await evaluate({
             executeAST: { $function: { params: ["value"], body: "$value" } }
@@ -64,7 +64,7 @@ for (const [name, evaluate] of [["astSync", astSync], ["astAsync", astAsync]]) {
         const callback = await evaluate({
             executeAST: { $function: { params: ["value"], body: { $await: "$value" } } }
         });
-        assert.throws(() => callback(Promise.resolve("value")), /requires astAsync/);
+        assert.throws(() => callback(Promise.resolve("value")), /requires evaluateAsync/);
     });
 
     test(`${name}: removed async flags and invalid wrappers fail clearly`, async () => {
@@ -81,7 +81,7 @@ for (const [name, evaluate] of [["astSync", astSync], ["astAsync", astAsync]]) {
 
 test("async initialization still awaits existing library functions", async () => {
     const library = { async initialize() { return { ready: true }; } };
-    const result = await astAsync({
+    const result = await evaluateAsync({
         sandbox: { library },
         executeAST: { "$library.initialize": [] }
     });
@@ -100,7 +100,7 @@ test("a JSON callback highlights supported code and returns a synchronous fallba
             return "<span>Highlighted</span>";
         }
     };
-    const callback = await astAsync({
+    const callback = await evaluateAsync({
         sandbox: { Prism },
         executeAST: {
             $function: {

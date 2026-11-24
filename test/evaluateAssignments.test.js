@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { astAsync, astSync } from '../src/modules/ast/index.js';
+import { evaluateAsync, evaluateSync } from '../src/modules/evaluate/index.js';
 
-for (const execute of [astSync, astAsync]) {
+for (const execute of [evaluateSync, evaluateAsync]) {
     test(`${execute.name}: dotted destination receives a nested call result`, async () => {
         const node = {};
         const instance = { ready: true };
@@ -114,7 +114,7 @@ for (const execute of [astSync, astAsync]) {
 test('asynchronous assignment waits for the initializer result', async () => {
     const node = {};
     const instance = {};
-    await astAsync({
+    await evaluateAsync({
         executeAST: { '$this.instance': { $create: [] } },
         node,
         sandbox: { $this: node, create: async () => instance }

@@ -8,7 +8,7 @@ import {
     processOperators,
     processOperatorsAsync,
     unpackTokens,
-    setASTEvaluators,
+    setEvaluators,
     customOperators,
     globalOperatorNames
 } from "./operators.js";
@@ -46,7 +46,7 @@ function finishControl(control) {
     throw new SyntaxError(`AST '${control.type}' requires an enclosing loop in the same function.`);
 }
 
-export function astSync(options = {}) {
+export function evaluateSync(options = {}) {
     try {
         return executeSync(options);
     } catch (control) {
@@ -54,7 +54,7 @@ export function astSync(options = {}) {
     }
 }
 
-export async function astAsync(options = {}) {
+export async function evaluateAsync(options = {}) {
     try {
         return await executeAsync(options);
     } catch (control) {
@@ -292,7 +292,7 @@ function createASTFunction(expression, { sandbox, node, registry }) {
     }
 
     const { params, body, bind } = getFunctionDefinition(functionExpression.$function);
-    const evaluate = isAsync ? astAsync : astSync;
+    const evaluate = isAsync ? evaluateAsync : evaluateSync;
     const execute = (thisArg, args) => {
         const { functionSandbox, functionRegistry } = createFunctionScope({
             sandbox, registry, params, args, thisArg
@@ -549,7 +549,7 @@ function executeSync({ executeAST, sandbox, node, registry, sequential = false }
         }
 
         if (structuralKey === "$await") {
-            throw new Error("AST '$await' requires astAsync.");
+            throw new Error("AST '$await' requires evaluateAsync.");
         }
 
         if (structuralKey === "$function" || structuralKey === "$async") {
@@ -579,7 +579,7 @@ function executeSync({ executeAST, sandbox, node, registry, sequential = false }
                 shouldAwait
             } = getForDefinition(targetNode.$for);
             if (shouldAwait) {
-                throw new Error("AST '$for' with '$await' requires astAsync.");
+                throw new Error("AST '$for' with '$await' requires evaluateAsync.");
             }
             const source = resolveConditionalValueSync(sourceExpression, { sandbox, node, registry, sequential });
             if (!source || typeof source[Symbol.iterator] !== "function") {
@@ -1059,9 +1059,9 @@ async function resolveInlinePlaceholdersAsync(str, { sandbox, node, registry, se
 }
 
 export async function evaluateAST({ node, executeAST, sandbox = {} } = {}) {
-    return await astAsync({ node, executeAST, sandbox });
+    return await evaluateAsync({ node, executeAST, sandbox });
 }
 
-setASTEvaluators(astSync, astAsync);
+setEvaluators(evaluateSync, evaluateAsync);
 
-export default astSync;
+export default evaluateSync;

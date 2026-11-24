@@ -1,6 +1,6 @@
 # Architecture
 
-`@cocreate/ast` owns CoCreate's declarative abstract syntax tree evaluator. AST
+`@cocreate/evaluate` owns CoCreate's declarative abstract syntax tree evaluator. AST
 input is structured data that the evaluator interprets; the package does not
 parse or execute JavaScript source.
 

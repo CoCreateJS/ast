@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { astSync, astAsync, evaluateAST } from "../src/modules/ast/index.js";
+import { evaluateSync, evaluateAsync, evaluateAST } from "../src/modules/evaluate/index.js";
 
 const condition = (source, value, branch) => ({
     $if: { [source]: { $eq: { [typeof value === "number" ? `$(${value})` : value]: branch } } }
@@ -9,7 +9,7 @@ const loop = (body, source = "$items", variable = "item") => ({
     $for: { [source]: { [variable]: body } }
 });
 
-for (const evaluate of [astSync, astAsync]) {
+for (const evaluate of [evaluateSync, evaluateAsync]) {
     for (const asArray of [false, true]) {
         test(`${evaluate.name}: break and continue skip remaining ${asArray ? "array" : "object"} steps`, async () => {
             const seen = [];
@@ -93,7 +93,7 @@ for (const evaluate of [astSync, astAsync]) {
                 executeAST: asyncFunction ? { $async: definition } : definition
             });
             const seen = [];
-            const invoke = asyncFunction ? astAsync : evaluate;
+            const invoke = asyncFunction ? evaluateAsync : evaluate;
             const result = await invoke({
                 sandbox: { items: [1, 2, 3], callback, record: value => seen.push(value) },
                 executeAST: {
@@ -117,7 +117,7 @@ for (const evaluate of [astSync, astAsync]) {
                     const callback = await evaluate({
                         executeAST: asyncFunction ? { $async: definition } : definition
                     });
-                    const invoke = asyncFunction ? astAsync : evaluate;
+                    const invoke = asyncFunction ? evaluateAsync : evaluate;
                     await assert.rejects(async () => invoke({
                         sandbox: { items: [1], callback },
                         executeAST: loop({ $callback: [] })
@@ -174,7 +174,7 @@ test("async iterable loop supports continue, break, return, and iterator cleanup
             condition("$item", 3, returning ? { $return: "returned" } : "$break"),
             { $record: "$item" }
         ];
-        const result = await astAsync({
+        const result = await evaluateAsync({
             sandbox: { items: items(), record: async value => { await Promise.resolve(); seen.push(value); } },
             executeAST: {
                 loop: { $for: { $await: { $items: { item: body } } } },
@@ -193,7 +193,7 @@ test("evaluateAST uses the same entry boundary for expressions and control flow"
     await assert.rejects(evaluateAST({ executeAST: "$break" }), SyntaxError);
 });
 
-for (const evaluate of [astSync, astAsync]) {
+for (const evaluate of [evaluateSync, evaluateAsync]) {
     test(`${evaluate.name}: explicit return preserves falsy values and skips following steps`, async () => {
         for (const value of [false, null, 0, "", { result: 42 }, [1, 2]]) {
             assert.deepEqual(await evaluate({
@@ -211,7 +211,7 @@ for (const evaluate of [astSync, astAsync]) {
 
 test("an explicit synchronous function return preserves a Promise without awaiting it", () => {
     const promise = Promise.resolve(42);
-    const callback = astSync({
+    const callback = evaluateSync({
         sandbox: { promise },
         executeAST: { $function: { body: { $return: "$promise" } } }
     });
@@ -219,7 +219,7 @@ test("an explicit synchronous function return preserves a Promise without awaiti
 });
 
 test("concurrent async callback invocations keep control flow isolated", async () => {
-    const callback = await astAsync({
+    const callback = await evaluateAsync({
         sandbox: { items: [1, 2, 3] },
         executeAST: { $async: { $function: {
             params: ["target"],

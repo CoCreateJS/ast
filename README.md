@@ -1,26 +1,26 @@
-# CoCreate AST
+# CoCreate Evaluate
 
-`@cocreate/ast` evaluates CoCreate's declarative abstract syntax tree format in
+`@cocreate/evaluate` evaluates CoCreate's declarative abstract syntax tree format in
 browser and Node.js environments. An AST is data: its nodes describe values,
 operations, control flow, and calls to explicitly available functions. The
 package evaluates that structure without parsing or executing JavaScript source.
 
 ```js
-import { astAsync } from '@cocreate/ast';
+import { evaluateAsync } from '@cocreate/evaluate';
 
-const result = await astAsync({
+const result = await evaluateAsync({
     executeAST: { '$concat': ['Hello, ', '$name'] },
     sandbox: { '$name': 'CoCreate' }
 });
 ```
 
-The package exports `astSync` and `astAsync` as the primary evaluators. Use the
+The package exports `evaluateSync` and `evaluateAsync` as the primary evaluators. Use the
 async evaluator when AST operations may await asynchronous functions. The
 optional `node` and `sandbox` values make runtime context and available
 capabilities explicit:
 
 ```js
-await astAsync({
+await evaluateAsync({
     node: element,
     sandbox: { '$loadRecord': loadRecord, '$recordId': 'record-123' },
     executeAST: {
@@ -32,22 +32,23 @@ await astAsync({
 
 ## Package entry points
 
-The package root resolves to the Node entry in Node.js and to the browser entry
-in browser bundlers. Explicit imports are available as `@cocreate/ast/server`
-and `@cocreate/ast/client`. The shared evaluator syntax is the same in both
-environments; each entry registers its environment's built-in roots.
+Node.js selects the server entry, and browser bundlers select the client entry
+from the same package root. Each entry registers the built-in roots for its
+environment.
 
 ```js
-import { astSync, astAsync } from '@cocreate/ast';
-import { astAsync } from '@cocreate/ast/server';
+import Evaluate, { evaluateSync, evaluateAsync } from "@cocreate/evaluate";
+
+const result = await Evaluate({ executeAST: "$value" });
 ```
 
 ## Evaluator API
 
 | Export | Description |
 | --- | --- |
-| `astSync(options)` | Evaluate an AST synchronously. |
-| `astAsync(options)` | Evaluate an AST and await asynchronous operations. |
+| `Evaluate(options)` (default) | Async evaluator selected for the current environment. |
+| `evaluateSync(options)` | Evaluate an AST synchronously. |
+| `evaluateAsync(options)` | Evaluate an AST and await asynchronous operations. |
 | `evaluateAST(options)` | Async evaluator alias accepting `node`, `executeAST`, and `sandbox`. |
 | `registerASTGlobals(globals)` | Register additional named roots in the active evaluator scope. |
 | `processOperators(value, ...)` | Resolve CoCreate operator expressions synchronously. |
@@ -62,7 +63,7 @@ and [architecture](specifications/architecture.md) for details.
 
 ## Syntax and capabilities
 
-CoCreate AST uses JSON-compatible structures and named `$` operations. It
+CoCreate Evaluate uses JSON-compatible structures and named `$` operations. It
 supports nested values, property access and assignment, conditionals, functions,
 iteration, and control flow such as `$return`, `$break`, and `$continue`. The
 available roots depend on the environment: shared JavaScript and Web APIs are
@@ -81,7 +82,7 @@ that member is not a function, AST evaluates the nested value, assigns the
 result to the property, and returns that result:
 
 ```js
-await astAsync({
+await evaluateAsync({
     node: element,
     sandbox: { $this: element, $ExamplePlugin: ExamplePlugin },
     executeAST: {
@@ -90,7 +91,7 @@ await astAsync({
 });
 ```
 
-This works in both `astSync` and `astAsync`, including multiple sibling keys,
+This works in both `evaluateSync` and `evaluateAsync`, including multiple sibling keys,
 nested paths, numeric array indices, and `items[]` appends. AST resolves the
 root from its sandbox or registry and delegates writes to `dotNotationToObject`.
 The root object must exist; missing parent objects are created by the shared
@@ -105,12 +106,12 @@ the host element by the plugin loader.
 
 In browser evaluations, `$window` reads the browser window and `$CoCreate`
 reads its current `window.CoCreate` namespace. Both support dotted property
-reads, assignment keys, and method calls in `astSync` and `astAsync`:
+reads, assignment keys, and method calls in `evaluateSync` and `evaluateAsync`:
 
 ```js
-astSync({ executeAST: "$window.location.origin" });
-astSync({ executeAST: "$CoCreate" });
-await astAsync({ executeAST: { "$window.exampleSettings": { enabled: true } } });
+evaluateSync({ executeAST: "$window.location.origin" });
+evaluateSync({ executeAST: "$CoCreate" });
+await evaluateAsync({ executeAST: { "$window.exampleSettings": { enabled: true } } });
 ```
 
 The globals resolve at evaluation time, so CoCreate may load after AST.
@@ -120,9 +121,9 @@ names inside `$()`.
 
 ### Synchronous and asynchronous callbacks
 
-`$function` creates a synchronous callback in both `astSync` and `astAsync`.
+`$function` creates a synchronous callback in both `evaluateSync` and `evaluateAsync`.
 Creating the callback does not execute its body. Wrap it in `$async` to create
-an asynchronous callback whose body uses `astAsync` and returns a Promise:
+an asynchronous callback whose body uses `evaluateAsync` and returns a Promise:
 
 ```json
 {
@@ -183,7 +184,7 @@ evaluation. Existing implicit function results remain supported.
 
 Break and continue cannot cross a `$function` or `$async` function boundary;
 using either without an enclosing loop in that function throws a `SyntaxError`.
-All forms work in `astSync` and `astAsync`, including `$for` with `$await` in
+All forms work in `evaluateSync` and `evaluateAsync`, including `$for` with `$await` in
 async evaluation. Breaking or returning closes the iterator as JavaScript does.
 Labeled break and continue are not supported.
 
@@ -206,7 +207,7 @@ For example, poll an API until it returns the boolean `true`:
 ```
 
 `TestAPI` is an application function supplied in the sandbox, not a built-in
-operator. Use `astAsync` for asynchronous requests: each call is awaited before
+operator. Use `evaluateAsync` for asynchronous requests: each call is awaited before
 testing the condition, and requests execute one at a time. The example is
 equivalent to:
 
@@ -253,12 +254,12 @@ standard JavaScript collections and error constructors. Optional globals are
 `undefined` when the environment does not provide them. Existing CoCreate
 helpers remain available.
 
-Import `astSync` or `astAsync` from `@cocreate/ast` in Node to register the
+Import `evaluateSync` or `evaluateAsync` from `@cocreate/evaluate` in Node to register the
 server scope. It adds `$crypto`, `$fs`, `$buffer`, `$Buffer`, `$util`, `$process`,
 and the other enabled public top-level Node modules, plus the KMS `$kms` namespace.
 Native modules load on access using Node's
 [`process.getBuiltinModule`](https://nodejs.org/api/process.html#processgetbuiltinmoduleid).
-The explicit list is in `src/modules/ast/serverGlobals.js`; unsupported entries
+The explicit list is in `src/modules/evaluate/serverGlobals.js`; unsupported entries
 such as `ffi` remain commented beside the active entries. Currently unused
 `dgram`, `sqlite`, and `repl` are also commented out and can be enabled later.
 Deprecated modules (`constants`, `domain`, `punycode`, and `sys`) are omitted.
@@ -274,7 +275,7 @@ Each registry entry includes a short description of its purpose.
 }
 ```
 
-Use `astAsync` for this example. Namespaced methods retain their native receiver,
+Use `evaluateAsync` for this example. Namespaced methods retain their native receiver,
 and return values can be stored and used in later steps. APIs such as
 `$fs.promises.readFile` are available through their module root. Explicit
 sandbox bindings can override defaults for an individual evaluation.
@@ -282,9 +283,9 @@ sandbox bindings can override defaults for an individual evaluation.
 In a browser, `$crypto` is native Web Crypto, also reachable as `$window.crypto`.
 On the server, `$crypto` is Node's crypto module; its Web Crypto API is available
 under `$crypto.webcrypto`. Node-only imports stay out of the browser bundle.
-The `@cocreate/ast/client` entry provides the shared/browser scope;
-`@cocreate/ast/server` registers the additional server roots. The Utils package
-continues to expose compatibility exports for `astSync` and `astAsync`.
+The package root selects the client entry in browser bundlers and the server
+entry in Node.js. Both expose the same evaluator API; the server entry registers
+additional Node roots.
 
 Server APIs execute with the Node process's permissions. Registering these roots
 provides capabilities; it does not isolate workflow execution from the host.

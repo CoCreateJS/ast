@@ -1,4 +1,4 @@
-# CoCreate AST Specifications
+# CoCreate Evaluate Specifications
 
 These documents define the package boundary and evaluator contract. The
 [README](../README.md) is the usage guide.

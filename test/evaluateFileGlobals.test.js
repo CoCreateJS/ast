@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { astSync, astAsync } from '../src/modules/ast/index.js';
+import { evaluateSync, evaluateAsync } from '../src/modules/evaluate/index.js';
 import { encodeContent } from '../src/modules/helpers/file/index.js';
-import { sharedGlobalsScope } from '../src/modules/ast/sharedGlobals.js';
+import { sharedGlobalsScope } from '../src/modules/evaluate/sharedGlobals.js';
 
 test('file AST globals directly delegate to shared conversion helpers', async () => {
     assert.equal(sharedGlobalsScope.$encodeContent, encodeContent);
-    for (const execute of [astSync, astAsync]) {
+    for (const execute of [evaluateSync, evaluateAsync]) {
         assert.equal(await execute({ executeAST: { $encodeContent: { value: [0, 255], format: 'base64' } } }), 'AP8=');
         assert.deepEqual(await execute({ executeAST: { $decodeContent: { value: 'AP8=', encoding: 'base64', format: 'bytes' } } }), Uint8Array.of(0, 255));
         assert.equal(await execute({ executeAST: { $getContentType: { pathname: 'image.PNG' } } }), 'image/png');
@@ -18,5 +18,5 @@ test('file AST globals directly delegate to shared conversion helpers', async ()
 
 test('async AST awaits File/Blob conversion', async () => {
     const file = new Blob([Uint8Array.of(0, 255)], { type: 'image/png' });
-    assert.equal(await astAsync({ executeAST: { $encodeContent: { value: '$file', format: 'base64' } }, sandbox: { file } }), 'AP8=');
+    assert.equal(await evaluateAsync({ executeAST: { $encodeContent: { value: '$file', format: 'base64' } }, sandbox: { file } }), 'AP8=');
 });

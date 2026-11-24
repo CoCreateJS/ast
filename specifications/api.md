@@ -2,8 +2,10 @@
 
 ## Evaluators
 
-`astSync(options)` evaluates `options.executeAST` and returns its result.
-`astAsync(options)` evaluates the same format and awaits supported asynchronous
+The default export is the asynchronous evaluator selected for the current environment.
+
+`evaluateSync(options)` evaluates `options.executeAST` and returns its result.
+`evaluateAsync(options)` evaluates the same format and awaits supported asynchronous
 operations. `evaluateAST(options)` is an alias for asynchronous evaluation.
 
 Options may include:
@@ -20,11 +22,9 @@ The operator helpers `processOperators`, `processOperatorsAsync`, and the
 `customOperators` registry are exported for integrations that need to resolve
 operator expressions directly.
 
-## Environment entries
+## Environment selection
 
 The package root selects the Node entry in Node.js and the browser entry in
-browser-aware bundlers. `@cocreate/ast/server` and `@cocreate/ast/client` select
-those entries explicitly. Both entries expose the same evaluator API and
-shared syntax. Browser globals are registered by the client entry; Node
-built-ins and CoCreate KMS server helpers are registered by the server
-entry.
+browser-aware bundlers. Both entries expose the same evaluator API and shared
+syntax. Browser globals are registered by the client entry; Node built-ins and
+CoCreate KMS server helpers are registered by the server entry.

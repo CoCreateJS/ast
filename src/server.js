@@ -1,6 +1,6 @@
-export { astSync, astAsync } from "./modules/ast/server.js";
-export { evaluateAST, registerASTGlobals, isomorphicSandbox } from "./modules/ast/index.js";
-export { processOperators, processOperatorsAsync, customOperators } from "./modules/ast/operators.js";
+export { evaluateSync, evaluateAsync } from "./modules/evaluate/server.js";
+export { evaluateAST, registerASTGlobals, isomorphicSandbox } from "./modules/evaluate/index.js";
+export { processOperators, processOperatorsAsync, customOperators } from "./modules/evaluate/operators.js";
 
-import { astSync } from "./modules/ast/server.js";
-export default astSync;
+import { evaluateAsync } from "./modules/evaluate/server.js";
+export default evaluateAsync;
